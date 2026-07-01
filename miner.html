@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Embark on an infinite 2D open-world sci-fi mining journey. Shoot rockets to explode blocks and caves, gather 18 types of precious elements, open the workshop popup, and purchase upgrades.">
+  <title>Vortex Miner - Open World Sandbox</title>
+  
+  <!-- Modern Fonts and Material Design Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Space+Grotesk:wght@300;400;600;700&family=Material+Icons&display=swap" rel="stylesheet">
+  
+  <!-- Custom Game Styles -->
+  <link rel="stylesheet" href="miner_style.css">
+</head>
+<body>
+
+  <div class="game-wrapper" id="game-mainframe">
+    
+    <!-- Main Viewport Canvas Area (Fills the entire screen) -->
+    <main class="canvas-container" id="canvas-wrapper-box">
+      <canvas id="mine-canvas"></canvas>
+
+      <!-- HUD Top Bar Overlay (Floating inside canvas area) -->
+      <div class="hud-top-bar" id="game-hud-bar">
+        <div class="hud-left">
+          <div class="hud-title" style="margin-right: 1.5rem; font-family: 'Orbitron', sans-serif; font-size: 1.3rem; font-weight: 900; background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 2px 8px rgba(0, 242, 254, 0.3)); letter-spacing: 1px;">VORTEX MINER</div>
+          <div class="hud-stat" id="miner-depth-meter" title="Current Depth">
+            <span class="material-icons">south</span>
+            <span id="depth-val">0m</span>
+          </div>
+          <div class="hud-stat" id="coin-counter" title="Credits" style="color: var(--neon-gold); border-color: rgba(255, 183, 0, 0.3);">
+            <span class="material-icons" style="color: var(--neon-gold);">monetization_on</span>
+            <span id="coin-val">0</span>
+          </div>
+        </div>
+        <button type="button" class="hud-btn" id="open-shop-btn" aria-label="Open Shop">
+          <span class="material-icons">shopping_bag</span>
+          <span>WORKSHOP</span>
+        </button>
+      </div>
+
+      <!-- Welcome Overlay Screen -->
+      <div class="modal-overlay active" id="welcome-overlay">
+        <h2 class="modal-title">DEEP SANDBOX MINING</h2>
+        <p class="modal-text">
+          Fly in any direction using <b>WASD</b> or <b>Arrow Keys</b> (hold <b>W</b> / <b>Space</b> to hover).
+        </p>
+        <p class="modal-text" style="color: var(--neon-cyan); font-weight: 600;">
+          CLICK / TAP on the screen to shoot rockets. Dig sideways and downwards infinitely!
+        </p>
+        <button type="button" class="btn" id="play-btn" style="padding: 1rem 3rem; font-size: 1.1rem; box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);">LAUNCH MINER</button>
+      </div>
+
+      <!-- Shop Popup Modal Overlay -->
+      <div class="modal-overlay" id="shop-modal">
+        <div class="shop-modal-container">
+          <header class="shop-modal-header">
+            <div style="display: flex; align-items: center; gap: 1.5rem;">
+              <h2 class="modal-title" style="font-size: 1.4rem;">WORKSHOP</h2>
+              <div class="shop-tabs">
+                <button type="button" class="tab-btn active" id="tab-btn-upgrades">UPGRADES</button>
+                <button type="button" class="tab-btn" id="tab-btn-weapons">WEAPONS</button>
+              </div>
+            </div>
+            <button type="button" class="close-modal-btn" id="close-shop-btn" aria-label="Close Shop">
+              <span class="material-icons">close</span>
+            </button>
+          </header>
+
+          <div class="shop-modal-content">
+            <!-- Left Side: Inventory & Sell -->
+            <div class="shop-inventory-section">
+              <h3 class="section-title">Minerals</h3>
+              <div class="inventory-grid" id="inventory-grid-list">
+                
+                <!-- Amethyst -->
+                <div class="ore-item" id="inventory-amethyst">
+                  <div class="ore-icon" style="background: rgba(176, 38, 255, 0.15); color: #b026ff;">🔮</div>
+                  <div class="ore-details">
+                    <span class="ore-name">Amethyst</span>
+                    <span class="ore-qty" id="ore-qty-amethyst">0</span>
+                  </div>
+                </div>
+
+                <!-- Ruby -->
+                <div class="ore-item" id="inventory-ruby">
+                  <div class="ore-icon" style="background: rgba(255, 0, 85, 0.15); color: #ff0055;">♦️</div>
+                  <div class="ore-details">
+                    <span class="ore-name">Ruby</span>
+                    <span class="ore-qty" id="ore-qty-ruby">0</span>
+                  </div>
+                </div>
+
+                <!-- Sapphire -->
+                <div class="ore-item" id="inventory-sapphire">
+                  <div class="ore-icon" style="background: rgba(0, 85, 255, 0.15); color: #0055ff;">🔷</div>
+                  <div class="ore-details">
+                    <span class="ore-name">Sapphire</span>
+                    <span class="ore-qty" id="ore-qty-sapphire">0</span>
+                  </div>
+                </div>
+
+                <!-- Gold -->
+                <div class="ore-item" id="inventory-gold">
+                  <div class="ore-icon" style="background: rgba(255, 183, 0, 0.15); color: #ffb700;">🪙</div>
+                  <div class="ore-details">
+                    <span class="ore-name">Gold</span>
+                    <span class="ore-qty" id="ore-qty-gold">0</span>
+                  </div>
+                </div>
+
+                <!-- Silver -->
+                <div class="ore-item" id="inventory-silver">
+                  <div class="ore-icon" style="background: rgba(192, 192, 192, 0.15); color: #c0c0c0;">🥈</div>
+                  <div class="ore-details">
+                    <span class="ore-name">Silver</span>
+                    <span class="ore-qty" id="ore-qty-silver">0</span>
+                  </div>
+                </div>
+
+                <!-- Dirt -->
+                <div class="ore-item" id="inventory-dirt">
+                  <div class="ore-icon" style="background: rgba(139, 90, 43, 0.15); color: #8b5a2b;">🪨</div>
+                  <div class="ore-details">
+                    <span class="ore-name">Dirt</span>
+                    <span class="ore-qty" id="ore-qty-dirt">0</span>
+                  </div>
+                </div>
+
+                <!-- Emerald -->
+                <div class="ore-item" id="inventory-emerald">
+                  <div class="ore-icon" style="background: rgba(0, 229, 117, 0.15); color: #00e575;">💎</div>
+                  <div class="ore-details">
+                    <span class="ore-name">Emerald</span>
+                    <span class="ore-qty" id="ore-qty-emerald">0</span>
+                  </div>
+                </div>
+
+                <!-- Diamond -->
+                <div class="ore-item" id="inventory-diamond">
+                  <div class="ore-icon" style="background: rgba(0, 210, 255, 0.15); color: #00d2ff;">✨</div>
+                  <div class="ore-details">
+                    <span class="ore-name">Diamond</span>
+                    <span class="ore-qty" id="ore-qty-diamond">0</span>
+                  </div>
+                </div>
+
+                <!-- Deep Ruby -->
+                <div class="ore-item" id="inventory-deep_ruby">
+                  <div class="ore-icon" style="background: rgba(128, 0, 0, 0.15); color: #800000;">🩸</div>
+                  <div class="ore-details">
+                    <span class="ore-name">Dp Ruby</span>
+                    <span class="ore-qty" id="ore-qty-deep_ruby">0</span>
+                  </div>
+                </div>
+
+                <!-- Deep Radioactive -->
+                <div class="ore-item" id="inventory-deep_radioactive">
+                  <div class="ore-icon" style="background: rgba(57, 255, 20, 0.15); color: #39ff14;">☢️</div>
+                  <div class="ore-details">
+                    <span class="ore-name">Uranium</span>
+                    <span class="ore-qty" id="ore-qty-deep_radioactive">0</span>
+                  </div>
+                </div>
+
+                <!-- Deep Gold -->
+                <div class="ore-item" id="inventory-deep_gold">
+                  <div class="ore-icon" style="background: rgba(229, 169, 59, 0.15); color: #e5a93b;">🪙</div>
+                  <div class="ore-details">
+                    <span class="ore-name">Dp Gold</span>
+                    <span class="ore-qty" id="ore-qty-deep_gold">0</span>
+                  </div>
+                </div>
+
+                <!-- Deep Silver -->
+                <div class="ore-item" id="inventory-deep_silver">
+                  <div class="ore-icon" style="background: rgba(160, 160, 160, 0.15); color: #a0a0a0;">💿</div>
+                  <div class="ore-details">
+                    <span class="ore-name">Dp Silver</span>
+                    <span class="ore-qty" id="ore-qty-deep_silver">0</span>
+                  </div>
+                </div>
+
+                <!-- Obsidian -->
+                <div class="ore-item" id="inventory-obsidian">
+                  <div class="ore-icon" style="background: rgba(74, 14, 78, 0.15); color: #4a0e4e;">🖤</div>
+                  <div class="ore-details">
+                    <span class="ore-name">Obsidian</span>
+                    <span class="ore-qty" id="ore-qty-obsidian">0</span>
+                  </div>
+                </div>
+
+                <!-- Magma -->
+                <div class="ore-item" id="inventory-magma">
+                  <div class="ore-icon" style="background: rgba(255, 55, 0, 0.15); color: #ff3700;">🔥</div>
+                  <div class="ore-details">
+                    <span class="ore-name">Magma</span>
+                    <span class="ore-qty" id="ore-qty-magma">0</span>
+                  </div>
+                </div>
+
+                <!-- Sandstone -->
+                <div class="ore-item" id="inventory-sandstone">
+                  <div class="ore-icon" style="background: rgba(210, 180, 140, 0.15); color: #d2b48c;">🏜️</div>
+                  <div class="ore-details">
+                    <span class="ore-name">Sandstone</span>
+                    <span class="ore-qty" id="ore-qty-sandstone">0</span>
+                  </div>
+                </div>
+
+                <!-- Deep Diamond -->
+                <div class="ore-item" id="inventory-deep_diamond">
+                  <div class="ore-icon" style="background: rgba(0, 255, 255, 0.15); color: #00ffff;">🌌</div>
+                  <div class="ore-details">
+                    <span class="ore-name">Void Dia</span>
+                    <span class="ore-qty" id="ore-qty-deep_diamond">0</span>
+                  </div>
+                </div>
+
+                <!-- Infected Gold -->
+                <div class="ore-item" id="inventory-infected_gold">
+                  <div class="ore-icon" style="background: rgba(153, 204, 0, 0.15); color: #99cc00;">🦠</div>
+                  <div class="ore-details">
+                    <span class="ore-name">Plague Gd</span>
+                    <span class="ore-qty" id="ore-qty-infected_gold">0</span>
+                  </div>
+                </div>
+
+                <!-- Deep Stone -->
+                <div class="ore-item" id="inventory-deep_stone">
+                  <div class="ore-icon" style="background: rgba(64, 64, 64, 0.15); color: #404040;">🔌</div>
+                  <div class="ore-details">
+                    <span class="ore-name">Slate</span>
+                    <span class="ore-qty" id="ore-qty-deep_stone">0</span>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Sell button -->
+              <button type="button" class="btn btn-danger" id="sell-all-btn" style="margin-top: 0.8rem; width: 100%;" disabled>SELL ALL ORES</button>
+              
+              <!-- Developer Cheat button -->
+              <button type="button" class="btn" id="cheat-coins-btn" style="margin-top: 0.5rem; width: 100%; background: linear-gradient(135deg, #b026ff, #ff007f); box-shadow: 0 4px 12px rgba(176, 38, 255, 0.3); border: none; color: #fff;">ADD 99,999,999 COINS</button>
+            </div>
+
+            <!-- Right Side: Upgrades or Weapons Page content -->
+            <div class="shop-upgrades-section">
+              <!-- Upgrades Page -->
+              <div class="shop-page active" id="page-upgrades">
+                <h3 class="section-title">Launcher & Gear Upgrades</h3>
+                <div class="upgrade-list" id="upgrades-panel-list">
+                  <!-- Populated dynamically in JavaScript -->
+                </div>
+              </div>
+
+              <!-- Weapons Page -->
+              <div class="shop-page" id="page-weapons" style="display: none;">
+                <h3 class="section-title">Weapon Armory</h3>
+                <div class="upgrade-list" id="weapons-panel-list">
+                  <!-- Populated dynamically in JavaScript -->
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Weapon Detail Overlay (inside shop-modal-container) -->
+          <div class="weapon-details-view" id="weapon-details-view">
+            <header class="shop-modal-header" style="padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-light);">
+              <div style="display: flex; align-items: center; gap: 1rem;">
+                <button type="button" class="close-modal-btn" id="back-to-weapons-btn" aria-label="Back">
+                  <span class="material-icons">arrow_back</span>
+                </button>
+                <h2 class="modal-title" id="detail-weapon-name" style="font-size: 1.4rem;">WEAPON UPGRADE</h2>
+              </div>
+              <button type="button" class="close-modal-btn" id="close-detail-btn" aria-label="Close">
+                <span class="material-icons">close</span>
+              </button>
+            </header>
+            
+            <div class="weapon-detail-body">
+              <!-- Left Column: Upgrade Stats list -->
+              <div class="detail-stats-section">
+                <h3 class="section-title">Upgrade Parameters</h3>
+                <div id="weapon-stat-upgrades-list" style="display: flex; flex-direction: column; gap: 0.8rem; flex-grow: 1; overflow-y: auto; padding-right: 4px; min-height: 0;">
+                  <!-- Dynamically populated stat upgrade cards -->
+                </div>
+              </div>
+              
+              <!-- Right Column: Weapon Preview Image (Enlarged) -->
+              <div class="detail-preview-section">
+                <canvas id="enlarged-weapon-canvas" width="160" height="160" style="image-rendering: pixelated; width: 160px; height: 160px;"></canvas>
+                <div id="detail-weapon-desc" class="upgrade-desc" style="margin-top: 1rem; text-align: center; max-width: 240px; font-size: 0.85rem; color: var(--text-dim);"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HUD Bottom Left Ammo Marker -->
+      <div class="hud-ammo-marker" id="miner-ammo-marker">
+        <span class="material-icons">grain</span>
+        <span id="ammo-val">12 / 12</span>
+      </div>
+
+      <!-- NPC Interaction Prompt -->
+      <div class="interaction-prompt" id="interaction-prompt" style="display: none;">
+        Press <span style="color: var(--neon-cyan); font-weight: bold;">[E]</span> to talk
+      </div>
+
+      <!-- Dialogue Overlay -->
+      <div class="modal-overlay" id="dialogue-overlay">
+        <div class="shop-panel" style="max-width: 480px; text-align: left; padding: 2rem; border-radius: 12px; border: 2px solid #00f2fe; box-shadow: 0 0 25px rgba(0,242,254,0.35); background: #05030a;">
+          <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+            <span class="material-icons" style="font-size: 2.5rem; color: #ffd000;">face</span>
+            <h3 id="dialogue-speaker" style="margin: 0; font-family: 'Orbitron', sans-serif; font-size: 1.3rem; color: #00f2fe; text-transform: uppercase;">Mouse Miner</h3>
+          </div>
+          <p id="dialogue-text" style="font-size: 1.05rem; line-height: 1.6; color: #e2e8f0; margin-bottom: 1.5rem;">
+            Hello traveler... I'm in desperate need of help. My mining partner got lost in a deep cavern cave-in further down. Can you find my friend for me?
+          </p>
+          <div id="dialogue-actions" style="display: flex; gap: 1rem; justify-content: flex-end;">
+            <button type="button" class="btn btn-secondary" id="dialogue-no-btn">DECLINE</button>
+            <button type="button" class="btn" id="dialogue-yes-btn">ACCEPT QUEST</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom controls footer bar (Floated inside viewport canvas container) -->
+      <footer class="bottom-footer-bar" id="panel-footer-controls">
+        <div class="hud-instructions" id="cheatsheet-guide">
+          Use <b>WASD</b> or <b>Arrow Keys</b>. Click to shoot. The world is infinite and holds procedurally generated cave systems and ore veins!
+        </div>
+        <button type="button" class="icon-toggle active" id="sound-toggle" aria-label="Audio Switch">
+          <span class="material-icons">volume_up</span>
+          <span style="font-weight: 600; font-size: 0.75rem;">SFX</span>
+        </button>
+      </footer>
+    </main>
+
+  </div>
+
+  <!-- Main Game Execution -->
+  <script src="miner_app.js?v=2.0.4"></script>
+</body>
+</html>
